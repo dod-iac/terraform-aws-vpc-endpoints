@@ -1,0 +1,57 @@
+version: '2.1'
+
+orbs:
+  terraform: circleci/terraform@1.2.0
+
+executors:
+  main:
+    working_directory: ~/project/
+    docker:
+      - image: cimg/base:2021.03
+
+jobs:
+  test:
+    executor: main
+    steps:
+      - checkout
+      - terraform/install:
+          terraform_version: 0.13.7
+      - run:
+          name: "Download and install terraform-docs"
+          command: |
+            set -euo pipefail
+            cd ~
+            mkdir -p ~/bin
+            curl -sSLO https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz
+            curl -sSLO https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}.sha256sum
+            [ $(sha256sum terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz | cut -f1 -d' ') = $(grep linux-amd64 terraform-docs-v${TERRAFORM_DOCS_VERSION}.sha256sum | cut -f1 -d' ') ]
+            tar -xf terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz
+            mv terraform-docs ~/bin/terraform-docs
+          environment:
+            TERRAFORM_DOCS_VERSION: "0.14.0"
+      - run:
+          name: "Download and install go"
+          command: |
+            set -euo pipefail
+            cd ~
+            mkdir -p ~/bin
+            curl -sSLO https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz
+            [ $(sha256sum go${GO_VERSION}.linux-amd64.tar.gz | cut -f1 -d' ') = 7154e88f5a8047aad4b80ebace58a059e36e7e2e4eb3b383127a28c711b4ff59 ]
+            tar -xzvf go${GO_VERSION}.linux-amd64.tar.gz
+            sudo mv go /usr/local
+            echo 'export PATH=$PATH:/usr/local/go/bin' >> $BASH_ENV
+          environment:
+            GO_VERSION: "1.16.4"
+            GO_CHECKSUM: "7154e88f5a8047aad4b80ebace58a059e36e7e2e4eb3b383127a28c711b4ff59"
+      - run: echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
+      - run: make update_docs
+      - run: make format_terraform
+      - run: make tidy
+      - run: make lint_go
+      - run: git diff --exit-code
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - test
