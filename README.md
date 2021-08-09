@@ -4,10 +4,41 @@
 Creates a set of VPC endpoints for the given VPC.
 
 ```hcl
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.1.0"
+
+  ...
+}
+
+resource "aws_security_group" "endpoint" {
+  name        = format("app-%s-vpc-endpoint", var.application)
+  description = "A security group for PrivateLink endpoints"
+  tags        = var.tags
+  vpc_id      = module.vpc.vpc_id
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 module "vpc_endpoints" {
   source = "dod-iac/vpc-endpoints/aws"
 
-  vpc_id = module.vpc.vpc_id
+  security_group_ids = [aws_security_group.endpoint.id]
+  subnet_ids         = module.vpc.private_subnets
+  vpc_id             = module.vpc.vpc_id
 
   tags  = {
     Application = var.application
@@ -53,7 +84,6 @@ No modules.
 | Name | Type |
 |------|------|
 | [aws_vpc_endpoint.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
-| [aws_iam_policy_document.default_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_vpc_endpoint_service.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc_endpoint_service) | data source |
 

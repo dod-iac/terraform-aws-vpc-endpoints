@@ -4,10 +4,41 @@
  * Creates a set of VPC endpoints for the given VPC.
  *
  * ```hcl
+ * module "vpc" {
+ *   source  = "terraform-aws-modules/vpc/aws"
+ *   version = "3.1.0"
+ *
+ *   ...
+ * }
+ *
+ * resource "aws_security_group" "endpoint" {
+ *   name        = format("app-%s-vpc-endpoint", var.application)
+ *   description = "A security group for PrivateLink endpoints"
+ *   tags        = var.tags
+ *   vpc_id      = module.vpc.vpc_id
+ *   ingress {
+ *     from_port   = 443
+ *     to_port     = 443
+ *     protocol    = "tcp"
+ *     cidr_blocks = ["0.0.0.0/0"]
+ *   }
+ *   egress {
+ *     from_port   = 0
+ *     to_port     = 0
+ *     protocol    = "-1"
+ *     cidr_blocks = ["0.0.0.0/0"]
+ *   }
+ *   lifecycle {
+ *     create_before_destroy = true
+ *   }
+ * }
+ *
  * module "vpc_endpoints" {
  *   source = "dod-iac/vpc-endpoints/aws"
  *
- *   vpc_id = module.vpc.vpc_id
+ *   security_group_ids = [aws_security_group.endpoint.id]
+ *   subnet_ids         = module.vpc.private_subnets
+ *   vpc_id             = module.vpc.vpc_id
  *
  *   tags  = {
  *     Application = var.application
@@ -37,12 +68,18 @@ data "aws_region" "current" {}
 locals {
   endpoints = {
 
-    # S3
+    # Athena
 
-    s3 = {
-      service      = "s3"
-      service_type = "Gateway"
-      tags         = { Name = "s3-vpc-endpoint" }
+    athena = {
+      service             = "athena"
+      private_dns_enabled = true
+    },
+
+    # CloudWatch
+
+    logs = {
+      service             = "logs"
+      private_dns_enabled = true
     },
 
     # EC2
@@ -86,10 +123,29 @@ locals {
       private_dns_enabled = true
     },
 
-    # CloudWatch
+    # S3
 
-    logs = {
-      service             = "logs"
+    s3 = {
+      service      = "s3"
+      service_type = "Gateway"
+      tags         = { Name = "s3-vpc-endpoint" }
+    },
+
+    # SageMaker
+
+    sagemaker_api = {
+      service             = "sagemaker.api"
+      private_dns_enabled = true
+    },
+    sagemaker_runtime = {
+      service             = "sagemaker.runtime"
+      private_dns_enabled = true
+    },
+
+    # STS
+
+    sts = {
+      service             = "sts"
       private_dns_enabled = true
     },
 
@@ -108,27 +164,12 @@ data "aws_vpc_endpoint_service" "this" {
   }
 }
 
-/*
-data "aws_iam_policy_document" "default_policy" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-    actions   = ["*"]
-    resources = ["*"]
-  }
-}
-*/
-
 resource "aws_vpc_endpoint" "this" {
   for_each = local.endpoints
 
   // Accept the VPC endpoint (the VPC endpoint and service need to be in the same AWS account).
   auto_accept = lookup(each.value, "auto_accept", null)
 
-  // policy = coalesce(lookup(each.value, "policy", null), var.policy, data.aws_iam_policy_document.default_policy.json)
   policy = lookup(each.value, "policy", null)
 
   private_dns_enabled = lookup(each.value, "service_type", "Interface") == "Interface" ? lookup(each.value, "private_dns_enabled", null) : null
