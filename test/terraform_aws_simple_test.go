@@ -62,6 +62,13 @@ func TestTerraformSimpleExample(t *testing.T) {
 		defer terraform.Destroy(t, terraformOptions)
 	}
 
-	// InitAndApply runs "terraform init" and then "terraform apply"
-	terraform.InitAndApply(t, terraformOptions)
+	// Init runs "terraform init"
+	terraform.Init(t, terraformOptions)
+
+	// Due to unmanaged peer dependencies, destroy the infrastructure first.
+	// Destroy runs "terraform destroy"
+	terraform.Destroy(t, terraformOptions)
+
+	// Apply runs "terraform apply"
+	terraform.Apply(t, terraformOptions)
 }

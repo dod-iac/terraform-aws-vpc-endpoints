@@ -137,6 +137,10 @@ locals {
       service             = "sagemaker.api"
       private_dns_enabled = true
     },
+    sagemaker_notebook = {
+      service_name        = format("aws.sagemaker.%s.notebook", data.aws_region.current.name)
+      private_dns_enabled = true
+    },
     sagemaker_runtime = {
       service             = "sagemaker.runtime"
       private_dns_enabled = true
