@@ -50,7 +50,7 @@
  *
  * ## Testing
  *
- * Run all terratest tests using the `terratest` script.  If using `aws-vault`, you could use `aws-vault exec $AWS_PROFILE -- terratest`.  The `AWS_DEFAULT_REGION` environment variable is required by the tests.  Use `TT_SKIP_DESTROY=1` to not destroy the infrastructure created during the tests.  Use `TT_VERBOSE=1` to log all tests as they are run.  The go test command can be executed directly, too.
+ * Run all terratest tests using the `terratest` script.  If using `aws-vault`, you could use `aws-vault exec $AWS_PROFILE -- terratest`.  The `AWS_DEFAULT_REGION` environment variable is required by the tests.  Use `TT_SKIP_DESTROY=1` to not destroy the infrastructure created during the tests.  Use `TT_VERBOSE=1` to log all tests as they are run.  Use `TT_TIMEOUT` to set the timeout for the tests, with the value being in the Go format, e.g., 15m.  The go test command can be executed directly, too.
  *
  * ## Terraform Version
  *
@@ -73,6 +73,15 @@ locals {
     athena = {
       service             = "athena"
       private_dns_enabled = true
+      tags                = { Name = "athena-vpc-endpoint" }
+    },
+
+    # CloudTrail
+
+    cloudtrail = {
+      service             = "cloudtrail"
+      private_dns_enabled = true
+      tags                = { Name = "cloudtrail-vpc-endpoint" }
     },
 
     # CloudWatch
@@ -80,6 +89,15 @@ locals {
     logs = {
       service             = "logs"
       private_dns_enabled = true
+      tags                = { Name = "logs-vpc-endpoint" }
+    },
+
+    # EBS
+
+    ebs = {
+      service             = "ebs"
+      private_dns_enabled = true
+      tags                = { Name = "ebs-vpc-endpoint" }
     },
 
     # EC2
@@ -87,10 +105,12 @@ locals {
     ec2 = {
       service             = "ec2"
       private_dns_enabled = true
+      tags                = { Name = "ec2-vpc-endpoint" }
     },
     ec2messages = {
       service             = "ec2messages"
       private_dns_enabled = true
+      tags                = { Name = "ec2messages-vpc-endpoint" }
     },
 
     # ECS and ECR
@@ -98,22 +118,27 @@ locals {
     ecs = {
       service             = "ecs"
       private_dns_enabled = true
+      tags                = { Name = "ecs-vpc-endpoint" }
     },
     ecs_agent = {
       service             = "ecs-agent"
       private_dns_enabled = true
+      tags                = { Name = "ecs-agent-vpc-endpoint" }
     },
     ecs_telemetry = {
       service             = "ecs-telemetry"
       private_dns_enabled = true
+      tags                = { Name = "ecs-telemetry-vpc-endpoint" }
     },
     ecr_api = {
       service             = "ecr.api"
       private_dns_enabled = true
+      tags                = { Name = "ecr-api-vpc-endpoint" }
     },
     ecr_dkr = {
       service             = "ecr.dkr"
       private_dns_enabled = true
+      tags                = { Name = "ecr-dkr-vpc-endpoint" }
     },
 
     # KMS
@@ -121,6 +146,15 @@ locals {
     kms = {
       service             = "kms"
       private_dns_enabled = true
+      tags                = { Name = "kms-vpc-endpoint" }
+    },
+
+    # Lambda
+
+    lambda = {
+      service             = "lambda"
+      private_dns_enabled = true
+      tags                = { Name = "lambda-vpc-endpoint" }
     },
 
     # S3
@@ -136,14 +170,47 @@ locals {
     sagemaker_api = {
       service             = "sagemaker.api"
       private_dns_enabled = true
+      tags                = { Name = "sagemaker-api-vpc-endpoint" }
     },
     sagemaker_notebook = {
       service_name        = format("aws.sagemaker.%s.notebook", data.aws_region.current.name)
       private_dns_enabled = true
+      tags                = { Name = "sagemaker-notebook-vpc-endpoint" }
     },
     sagemaker_runtime = {
       service             = "sagemaker.runtime"
       private_dns_enabled = true
+      tags                = { Name = "sagemaker-runtime-vpc-endpoint" }
+    },
+
+    # SNS
+
+    sns = {
+      service             = "sns"
+      private_dns_enabled = true
+      tags                = { Name = "sns-vpc-endpoint" }
+    },
+
+    # SSM
+
+    ssm = {
+      service             = "ssm"
+      private_dns_enabled = true
+      tags                = { Name = "ssm-vpc-endpoint" }
+    },
+
+    ssmmessages = {
+      service             = "ssmmessages"
+      private_dns_enabled = true
+      tags                = { Name = "ssmmessages-vpc-endpoint" }
+    },
+
+    # SQS
+
+    sqs = {
+      service             = "sqs"
+      private_dns_enabled = true
+      tags                = { Name = "sqs-vpc-endpoint" }
     },
 
     # STS
@@ -151,6 +218,7 @@ locals {
     sts = {
       service             = "sts"
       private_dns_enabled = true
+      tags                = { Name = "sts-vpc-endpoint" }
     },
 
   }

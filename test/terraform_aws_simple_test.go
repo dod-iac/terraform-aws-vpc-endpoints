@@ -45,8 +45,10 @@ func TestTerraformSimpleExample(t *testing.T) {
 		TerraformDir: "../examples/simple",
 		// Set the variables passed to terraform
 		Vars: map[string]interface{}{
-			"test_name": testName,
-			"tags":      tags,
+			"public_key":   "../../temp/id_rsa.pub",
+			"ec2_image_id": "ami-083ac7c7ecf9bb9b0",
+			"test_name":    testName,
+			"tags":         tags,
 		},
 		// Set the environment variables passed to terraform.
 		// AWS_DEFAULT_REGION is the only environment variable strictly required,

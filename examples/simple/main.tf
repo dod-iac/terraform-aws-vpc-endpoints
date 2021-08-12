@@ -35,7 +35,7 @@ module "vpc" {
   reuse_nat_ips          = true
   external_nat_ip_ids    = aws_eip.nat.*.id
 
-  # DNS Support
+  # DNS Support is required to use VPC interface endpoints
   enable_dns_hostnames = true
   enable_dns_support   = true
 
@@ -90,4 +90,97 @@ module "vpc_endpoints" {
   tags = var.tags
 
   vpc_id = module.vpc.vpc_id
+}
+
+#
+# The following resources are used for testing.
+#
+
+resource "aws_security_group" "ec2_instance" {
+  name        = format("ec2-instance-%s", var.test_name)
+  description = format("Allow traffic to test EC2 instance for %s", var.test_name)
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+module "ec2_instance_role" {
+  source  = "dod-iac/ec2-instance-role/aws"
+  version = "1.0.1"
+
+  name = format("ec2-instance-role-%s", var.test_name)
+
+  tags = var.tags
+}
+
+resource "aws_iam_instance_profile" "ec2_instance_role" {
+  name = module.ec2_instance_role.name
+  role = module.ec2_instance_role.name
+}
+
+resource "aws_key_pair" "test" {
+  key_name   = format("instance-%s", var.test_name)
+  public_key = file(var.public_key)
+}
+
+resource "aws_instance" "test" {
+  ami = var.ec2_image_id
+
+  instance_type = "t3.micro"
+
+  key_name = aws_key_pair.test.key_name
+
+  root_block_device {
+    volume_type           = "standard"
+    volume_size           = "8"
+    delete_on_termination = true
+    encrypted             = false
+    kms_key_id            = null
+
+    # Not used by specified to minimize state drift
+    iops = 0
+
+    tags = merge({
+      Name = format("ec2-instance-%s", var.test_name)
+    }, var.tags)
+  }
+
+  vpc_security_group_ids = [
+    aws_security_group.ec2_instance.id
+  ]
+
+  subnet_id = module.vpc.public_subnets.0
+
+  associate_public_ip_address = true
+
+  iam_instance_profile = aws_iam_instance_profile.ec2_instance_role.name
+
+  # disable_api_termination, ebs_optimized, hiberation, and monitoring, default to false,
+  # but are set to minimize state drift
+  disable_api_termination = false
+  ebs_optimized           = false
+  hibernation             = false
+  monitoring              = false
+
+  tags = merge({
+    Name = format("ec2-instance-%s", var.test_name)
+  }, var.tags)
+
+  lifecycle {
+    ignore_changes = [
+      user_data
+    ]
+  }
 }

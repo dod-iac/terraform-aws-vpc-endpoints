@@ -14,3 +14,4 @@ terraform.tfstate.*.backup
 
 # miscellaneous
 .DS_Store
+temp
