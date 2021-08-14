@@ -83,9 +83,9 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [aws_vpc_endpoint.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
+| [aws_vpc_endpoint.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_vpc_endpoint_service.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc_endpoint_service) | data source |
+| [aws_vpc_endpoint_service.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc_endpoint_service) | data source |
 
 ## Inputs
 
@@ -102,5 +102,8 @@ No modules.
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_endpoint_services"></a> [endpoint\_services](#output\_endpoint\_services) | n/a |
+| <a name="output_endpoints"></a> [endpoints](#output\_endpoints) | n/a |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

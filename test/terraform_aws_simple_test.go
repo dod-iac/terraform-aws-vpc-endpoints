@@ -32,7 +32,7 @@ func TestTerraformSimpleExample(t *testing.T) {
 	// Append a random suffix to the test name, so individual test runs are unique.
 	// When the test runs again, it will use the existing terraform state,
 	// so it should override the existing infrastructure.
-	testName := fmt.Sprintf("terratest-ecs-cluster-simple-%s", strings.ToLower(random.UniqueId()))
+	testName := fmt.Sprintf("terratest-vpc-endpoints-simple-%s", strings.ToLower(random.UniqueId()))
 
 	tags := map[string]interface{}{
 		"Automation": "Terraform",

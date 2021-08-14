@@ -5,6 +5,10 @@
 //
 // =================================================================
 
+data "aws_caller_identity" "current" {}
+
+data "aws_partition" "current" {}
+
 data "aws_region" "current" {}
 
 resource "aws_eip" "nat" {
@@ -96,6 +100,43 @@ module "vpc_endpoints" {
 # The following resources are used for testing.
 #
 
+resource "aws_cloudwatch_log_group" "test" {
+  name = var.test_name
+  tags = var.tags
+}
+
+resource "aws_cloudwatch_log_stream" "test_results" {
+  name           = "results"
+  log_group_name = aws_cloudwatch_log_group.test.name
+}
+
+data "aws_iam_policy_document" "execution_role_policy" {
+  statement {
+    sid = "CreateCloudWatchLogStreamsAndPutLogEvents"
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    effect = "Allow"
+    resources = [
+      format(
+        "arn:%s:logs:%s:%s:log-group:%s:log-stream:%s",
+        data.aws_partition.current.partition,
+        data.aws_region.current.name,
+        data.aws_caller_identity.current.account_id,
+        aws_cloudwatch_log_group.test.name,
+        aws_cloudwatch_log_stream.test_results.name,
+      )
+    ]
+  }
+}
+
+resource "aws_iam_policy" "execution_role_policy" {
+  name   = format("execution-role-%s", var.test_name)
+  path   = "/"
+  policy = data.aws_iam_policy_document.execution_role_policy.json
+}
+
 resource "aws_security_group" "ec2_instance" {
   name        = format("ec2-instance-%s", var.test_name)
   description = format("Allow traffic to test EC2 instance for %s", var.test_name)
@@ -173,6 +214,15 @@ resource "aws_instance" "test" {
   ebs_optimized           = false
   hibernation             = false
   monitoring              = false
+
+  user_data = templatefile(format("%s/userdata.tpl", path.module), {
+    log_group_name    = aws_cloudwatch_log_group.test.name,
+    log_stream_name   = aws_cloudwatch_log_stream.test_results.name,
+    region            = data.aws_region.current.name
+    endpoints         = module.vpc_endpoints.endpoints
+    endpoint_services = module.vpc_endpoints.endpoint_services
+    tags              = merge(var.tags, { Name = var.test_name })
+  })
 
   tags = merge({
     Name = format("ec2-instance-%s", var.test_name)

@@ -224,7 +224,7 @@ locals {
   }
 }
 
-data "aws_vpc_endpoint_service" "this" {
+data "aws_vpc_endpoint_service" "main" {
   for_each = local.endpoints
 
   service      = lookup(each.value, "service", null)
@@ -236,7 +236,7 @@ data "aws_vpc_endpoint_service" "this" {
   }
 }
 
-resource "aws_vpc_endpoint" "this" {
+resource "aws_vpc_endpoint" "main" {
   for_each = local.endpoints
 
   // Accept the VPC endpoint (the VPC endpoint and service need to be in the same AWS account).
@@ -249,7 +249,7 @@ resource "aws_vpc_endpoint" "this" {
   route_table_ids = lookup(each.value, "service_type", "Interface") == "Gateway" ? lookup(each.value, "route_table_ids", null) : null
 
   // The verbose service name for each service for the region
-  service_name = data.aws_vpc_endpoint_service.this[each.key].service_name
+  service_name = data.aws_vpc_endpoint_service.main[each.key].service_name
 
   // Assume each endpoint is an Interface type unless otherwise specified.
   vpc_endpoint_type = lookup(each.value, "service_type", "Interface")
