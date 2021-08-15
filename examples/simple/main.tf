@@ -219,8 +219,8 @@ resource "aws_instance" "test" {
     log_group_name    = aws_cloudwatch_log_group.test.name,
     log_stream_name   = aws_cloudwatch_log_stream.test_results.name,
     region            = data.aws_region.current.name
-    endpoints         = module.vpc_endpoints.endpoints
-    endpoint_services = module.vpc_endpoints.endpoint_services
+    services          = jsonencode([for k, v in module.vpc_endpoints.endpoints : v.service_name])
+    private_dns_names = jsonencode([for k, v in module.vpc_endpoints.endpoint_services : v.private_dns_name])
     tags              = merge(var.tags, { Name = var.test_name })
   })
 

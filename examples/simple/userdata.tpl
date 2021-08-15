@@ -22,10 +22,17 @@ yum -y update >> /var/log/startup.log 2>&1
 yum -y install jq
 # Update shell
 echo "export AWS_DEFAULT_REGION=${region}" >> /home/ec2-user/.bash_profile
+n=$(echo "${services}" | jq -r ". | length")
+echo "Services" >> /var/log/startup.log 2>&1
+echo "${services}" >> /var/log/startup.log 2>&1
+echo "Private DNS Names" >> /var/log/startup.log 2>&1
+echo "${private_dns_names}" >> /var/log/startup.log 2>&1
 # Run DNS queries
-for service in "${endpoints}"; do
-  log_events=$(dig A "${service}.${region}.amazonaws.com" +nocomments +noquestion +noauthority +noadditional +nostats  | awk '{if (NR>3){print}}'| tr -s '\t' | jq -R 'split("\t") | .[2]' | jq --arg s "${service}" --arg ts "$(echo $(($(date +%s%N)/1000000)))" --slurp '[{service:$s, timestamp:($ts|tonumber), message:(.|@json)}]')
-  aws logs put-log-events --log-group-name "${log_group_name}" --log-stream-name "${log_stream_name}" --log-events "${log_events}"
+for i in $(seq 1 $${n}); do
+  service_name=$(echo "${services}" | jq --arg i -r "$${i}" ".[$$i|tonumber]")
+  private_dns_name=$(echo "${private_dns_names}" | jq --arg i -r "$${i}" ".[$$i|tonumber]")
+  log_events=$(dig A "$${private_dns_name}" +nocomments +noquestion +noauthority +noadditional +nostats  | awk '{if (NR>3){print}}'| tr -s '\t' | jq -R 'split("\t") | .[2]' | jq --arg s "$${service_name}" --arg ts --arg d "$${private_dns_name}" "$(echo $(($(date +%s%N)/1000000)))" --slurp '[{timestamp:($$ts|tonumber), message:{service_name: $$s, private_dns_name: $$d, results:(.|@json)}}]')
+  aws logs put-log-events --log-group-name "${log_group_name}" --log-stream-name "${log_stream_name}" --log-events "$${log_events}" >> /var/log/startup.log 2>&1
 done
 # Mark that user data script finished execution
 echo "Done" >> /var/log/startup.log 2>&1
