@@ -100,6 +100,45 @@ module "vpc_endpoints" {
 # The following resources are used for testing.
 #
 
+resource "aws_s3_bucket" "test" {
+  bucket = var.test_name
+  tags   = var.tags
+
+  versioning {
+    enabled = true
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "test" {
+  bucket = aws_s3_bucket.test.id
+
+  # Block new public ACLs and uploading public objects
+  block_public_acls = true
+
+  # Retroactively remove public access granted through public ACLs
+  ignore_public_acls = true
+
+  # Block new public bucket policies
+  block_public_policy = true
+
+  # Retroactivley block public and cross-account access if bucket has public policies
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_object" "test" {
+  bucket = aws_s3_bucket.test.id
+  acl    = "bucket-owner-full-control"
+  key    = "endpoints.json"
+  content = jsonencode([for k, v in module.vpc_endpoints.endpoints : {
+    name             = v.tags.Name
+    id               = v.id
+    arn              = v.arn
+    service_id       = module.vpc_endpoints.endpoint_services[k].service_id
+    private_dns_name = module.vpc_endpoints.endpoint_services[k].private_dns_name
+  }])
+  server_side_encryption = "AES256"
+}
+
 resource "aws_cloudwatch_log_group" "test" {
   name = var.test_name
   tags = var.tags
@@ -110,7 +149,7 @@ resource "aws_cloudwatch_log_stream" "test_results" {
   log_group_name = aws_cloudwatch_log_group.test.name
 }
 
-data "aws_iam_policy_document" "execution_role_policy" {
+data "aws_iam_policy_document" "ec2_instance_role_policy" {
   statement {
     sid = "CreateCloudWatchLogStreamsAndPutLogEvents"
     actions = [
@@ -129,12 +168,21 @@ data "aws_iam_policy_document" "execution_role_policy" {
       )
     ]
   }
+  statement {
+    sid = "GetObject"
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion",
+    ]
+    effect    = "Allow"
+    resources = [aws_s3_bucket.test.arn]
+  }
 }
 
-resource "aws_iam_policy" "execution_role_policy" {
+resource "aws_iam_policy" "ec2_instance_role_policy" {
   name   = format("execution-role-%s", var.test_name)
   path   = "/"
-  policy = data.aws_iam_policy_document.execution_role_policy.json
+  policy = data.aws_iam_policy_document.ec2_instance_role_policy.json
 }
 
 resource "aws_security_group" "ec2_instance" {
@@ -164,6 +212,11 @@ module "ec2_instance_role" {
   name = format("ec2-instance-role-%s", var.test_name)
 
   tags = var.tags
+}
+
+resource "aws_iam_user_policy_attachment" "ec2_instance_role_policy" {
+  user       = module.ec2_instance_role.name
+  policy_arn = aws_iam_policy.ec2_instance_role_policy.arn
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_role" {
@@ -216,12 +269,11 @@ resource "aws_instance" "test" {
   monitoring              = false
 
   user_data = templatefile(format("%s/userdata.tpl", path.module), {
-    log_group_name    = aws_cloudwatch_log_group.test.name,
-    log_stream_name   = aws_cloudwatch_log_stream.test_results.name,
-    region            = data.aws_region.current.name
-    services          = jsonencode([for k, v in module.vpc_endpoints.endpoints : v.service_name])
-    private_dns_names = jsonencode([for k, v in module.vpc_endpoints.endpoint_services : v.private_dns_name])
-    tags              = merge(var.tags, { Name = var.test_name })
+    log_group_name  = aws_cloudwatch_log_group.test.name,
+    log_stream_name = aws_cloudwatch_log_stream.test_results.name,
+    bucket          = aws_s3_bucket.test.id
+    region          = data.aws_region.current.name
+    tags            = merge(var.tags, { Name = var.test_name })
   })
 
   tags = merge({

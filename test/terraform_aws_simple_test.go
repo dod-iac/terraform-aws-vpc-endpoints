@@ -8,16 +8,27 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
+
+type Message struct {
+	Name           string   `json:name`
+	PrivateDNSName string   `json:private_dns_name`
+	Results        []string `json:results`
+}
 
 func TestTerraformSimpleExample(t *testing.T) {
 
@@ -73,4 +84,36 @@ func TestTerraformSimpleExample(t *testing.T) {
 
 	// Apply runs "terraform apply"
 	terraform.Apply(t, terraformOptions)
+
+	s := session.Must(session.NewSession())
+
+	logs := cloudwatchlogs.New(s, aws.NewConfig().WithRegion(region))
+
+	cloudwatchLogGroupName := terraform.Output(t, terraformOptions, "cloudwatch_log_group_name")
+
+	// Wait for log messages to be saved
+	t.Logf("Waiting for log messages to be saved")
+	events := make([]*cloudwatchlogs.FilteredLogEvent, 0)
+	for i := 0; true; i++ {
+		filterLogEventsOutput, filterLogEventsError := logs.FilterLogEvents(&cloudwatchlogs.FilterLogEventsInput{
+			LogGroupName: aws.String(cloudwatchLogGroupName),
+		})
+		require.NoError(t, filterLogEventsError)
+		if len(filterLogEventsOutput.Events) > 0 {
+			events = filterLogEventsOutput.Events
+			break
+		}
+		time.Sleep(1 * time.Second)
+		if i == 30 {
+			require.Fail(t, "ECS task had no logs after 30 seconds")
+		}
+	}
+
+	t.Logf("Checking results")
+	for _, event := range events {
+		message := &Message{}
+		err := json.Unmarshal([]byte(aws.StringValue(event.Message)), message)
+		require.NoError(t, err)
+		t.Logf("Checking results for %#v", message)
+	}
 }
