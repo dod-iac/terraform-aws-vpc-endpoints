@@ -175,7 +175,9 @@ data "aws_iam_policy_document" "ec2_instance_role_policy" {
       "s3:GetObjectVersion",
     ]
     effect    = "Allow"
-    resources = [aws_s3_bucket.test.arn]
+    resources = formatlist("%s/*", [
+      aws_s3_bucket.test.arn
+    ])
   }
 }
 
