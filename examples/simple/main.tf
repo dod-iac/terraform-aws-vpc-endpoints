@@ -133,6 +133,7 @@ resource "aws_s3_bucket_object" "test" {
     name             = v.tags.Name
     id               = v.id
     arn              = v.arn
+    type             = v.vpc_endpoint_type,
     service_id       = module.vpc_endpoints.endpoint_services[k].service_id
     private_dns_name = module.vpc_endpoints.endpoint_services[k].private_dns_name
   }])

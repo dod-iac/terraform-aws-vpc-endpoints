@@ -22,15 +22,16 @@ yum -y update >> /var/log/startup.log 2>&1
 yum -y install jq >> /var/log/startup.log 2>&1
 # Update shell
 echo "export AWS_DEFAULT_REGION=${region}" >> /root/.bash_profile
-e=$(aws s3 cp "s3://${bucket}/endpoints.json" -)
-n=$(echo "$${e}" | jq -r ". | length")
+all_endpoints=$(aws s3 cp "s3://${bucket}/endpoints.json" -)
+interface_endpoints=$(echo "$${all_endpoints}" | jq -r '.[]|select(.type == "Interface")')
+interface_endpoints_length=$(echo "$${interface_endpoints}" | jq -r ". | length")
 echo "Endpoints" >> /var/log/startup.log 2>&1
-echo "$${e}" >> /var/log/startup.log 2>&1
+echo "$${interface_endpoints}" >> /var/log/startup.log 2>&1
 # Run DNS queries
 sequence_token=""
-for i in $(seq 1 $${n}); do
-  name=$(echo "$${e}" | jq -r --arg i "$${i}" '.[$i|tonumber].name')
-  private_dns_name=$(echo "$${e}" | jq -r --arg i "$${i}" '.[$i|tonumber].private_dns_name')
+for i in $(seq 1 $${interface_endpoints_length}); do
+  name=$(echo "$${interface_endpoints}" | jq -r --arg i "$${i}" '.[$i|tonumber].name')
+  private_dns_name=$(echo "$${interface_endpoints}" | jq -r --arg i "$${i}" '.[$i|tonumber].private_dns_name')
   log_events=$(dig A "$${private_dns_name}" +nocomments +noquestion +noauthority +noadditional +nostats | awk '{if (NR>3){print}}'| tr -s '\t' | jq -R 'split("\t") | .[-1]' | jq -r --arg d "$${private_dns_name}" --arg n "$${name}" --arg ts "$(echo $(($(date +%s%N)/1000000)))" --slurp '[{timestamp:($ts|tonumber), message:({name: $n, private_dns_name: $d, results:.}|@json)}]|@json')
   if [[ -z "$${sequence_token:-}" ]]; then
     sequence_token=$(aws logs put-log-events \
