@@ -214,8 +214,8 @@ module "ec2_instance_role" {
   tags = var.tags
 }
 
-resource "aws_iam_user_policy_attachment" "ec2_instance_role_policy" {
-  user       = module.ec2_instance_role.name
+resource "aws_iam_role_policy_attachment" "ec2_instance_role_policy" {
+  role       = module.ec2_instance_role.name
   policy_arn = aws_iam_policy.ec2_instance_role_policy.arn
 }
 
