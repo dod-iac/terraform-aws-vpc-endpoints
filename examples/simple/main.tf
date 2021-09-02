@@ -26,7 +26,7 @@ resource "aws_eip" "nat" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.1.0"
+  version = "3.7.0"
 
   name = format("app-vpc-%s", var.test_name)
   cidr = "10.0.0.0/16"
@@ -128,7 +128,7 @@ resource "aws_s3_bucket_public_access_block" "test" {
   restrict_public_buckets = true
 }
 
-resource "aws_s3_bucket_object" "test" {
+resource "aws_s3_bucket_object" "endpoints" {
   bucket = aws_s3_bucket.test.id
   acl    = "bucket-owner-full-control"
   key    = "endpoints.json"
@@ -197,7 +197,7 @@ data "aws_iam_policy_document" "ec2_instance_role_policy" {
     ]
   }
   statement {
-    sid = "GetObject"
+    sid = "GetAndPutObject"
     actions = [
       "s3:GetObject",
       "s3:GetObjectVersion",

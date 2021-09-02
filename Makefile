@@ -46,12 +46,12 @@ tidy: ## Tidy Go source code
 # Terratest
 #
 
-temp/id_rsa: # Create EC2 keypair for use with tests
+temp/id_rsa: ## Create EC2 keypair for use with tests
 	mkdir -p temp
 	ssh-keygen -t rsa -b 4096 -C "test@example.com" -q -N "" -f temp/id_rsa
 
 .PHONY: terratest
-terratest: temp/keypair ## Run terratest tests
+terratest: temp/id_rsa ## Run terratest tests
 	bash scripts/terratest
 
 #
