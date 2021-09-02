@@ -36,6 +36,11 @@
  * module "vpc_endpoints" {
  *   source = "dod-iac/vpc-endpoints/aws"
  *
+ *   route_table_ids    = flatten([
+ *     module.vpc.intra_route_table_ids,
+ *     module.vpc.private_route_table_ids,
+ *     module.vpc.public_route_table_ids
+ *   ])
  *   security_group_ids = [aws_security_group.endpoint.id]
  *   subnet_ids         = module.vpc.private_subnets
  *   vpc_id             = module.vpc.vpc_id
@@ -246,7 +251,7 @@ resource "aws_vpc_endpoint" "main" {
 
   private_dns_enabled = lookup(each.value, "service_type", "Interface") == "Interface" ? lookup(each.value, "private_dns_enabled", null) : null
 
-  route_table_ids = lookup(each.value, "service_type", "Interface") == "Gateway" ? lookup(each.value, "route_table_ids", null) : null
+  route_table_ids = lookup(each.value, "service_type", "Interface") == "Gateway" ? coalesce(lookup(each.value, "route_table_ids", null), var.route_table_ids) : null
 
   // The verbose service name for each service for the region
   service_name = data.aws_vpc_endpoint_service.main[each.key].service_name
