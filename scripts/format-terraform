@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# =================================================================
+#
+# Work of the U.S. Department of Defense, Defense Digital Service.
+# Released as open source under the MIT License.  See LICENSE file.
+#
+# =================================================================
+
+set -eu -o pipefail
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+readonly DIR
+
+if ! command -v terraform > /dev/null; then
+  echo "terraform is missing."
+  exit 1
+fi
+
+pushd "${DIR}/.." > /dev/null
+terraform fmt
+popd > /dev/null
+
+for example in ${DIR}/../examples/*
+do
+  if [ -d "${example}" ] && [ -f "${example}/main.tf" ]; then
+    pushd "${example}" > /dev/null
+    terraform fmt
+    popd > /dev/null
+  fi
+done

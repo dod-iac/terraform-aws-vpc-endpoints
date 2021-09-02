@@ -1,0 +1,58 @@
+version: '2.1'
+
+orbs:
+  terraform: circleci/terraform@1.2.0
+
+executors:
+  main:
+    working_directory: ~/project/
+    docker:
+      - image: cimg/base:2021.03
+
+jobs:
+  test:
+    executor: main
+    steps:
+      - checkout
+      - terraform/install:
+          terraform_version: 0.13.7
+      - run:
+          name: "Download and install terraform-docs"
+          command: |
+            set -euo pipefail
+            cd ~
+            mkdir -p ~/bin
+            curl -sSLO https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz
+            curl -sSLO https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}.sha256sum
+            [ $(sha256sum terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz | cut -f1 -d' ') = $(grep linux-amd64 terraform-docs-v${TERRAFORM_DOCS_VERSION}.sha256sum | cut -f1 -d' ') ]
+            tar -xf terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz
+            mv terraform-docs ~/bin/terraform-docs
+          environment:
+            TERRAFORM_DOCS_VERSION: "0.14.1"
+      - run:
+          name: "Download and install go"
+          command: |
+            set -euo pipefail
+            cd ~
+            mkdir -p ~/bin
+            curl -sSLO https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz
+            [ $(sha256sum go${GO_VERSION}.linux-amd64.tar.gz | cut -f1 -d' ') = "${GO_CHECKSUM}" ]
+            tar -xzvf go${GO_VERSION}.linux-amd64.tar.gz
+            sudo mv go /usr/local
+            echo 'export PATH=$PATH:/usr/local/go/bin' >> $BASH_ENV
+          environment:
+            GO_VERSION: "1.16.5"
+            GO_CHECKSUM: "b12c23023b68de22f74c0524f10b753e7b08b1504cb7e417eccebdd3fae49061"
+      - run: echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
+      - run: make update_docs
+      - run: make format_terraform
+      - run: make imports
+      - run: make tidy
+      - run: make lint_go
+      - run: git diff --exit-code
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - test
