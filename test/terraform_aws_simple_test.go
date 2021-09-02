@@ -10,6 +10,7 @@ package test
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"strings"
@@ -54,16 +55,20 @@ func TestTerraformSimpleExample(t *testing.T) {
 		"Test":       "TestTerraformSimpleExample",
 	}
 
+	vars := map[string]interface{}{
+		"public_key":   "../../temp/id_rsa.pub",
+		"ec2_image_id": "ami-083ac7c7ecf9bb9b0",
+		"test_name":    testName,
+		"tags":         tags,
+	}
+
+	t.Logf("Terraform variables %#v", vars)
+
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// TerraformDir is where the terraform state is found.
 		TerraformDir: "../examples/simple",
 		// Set the variables passed to terraform
-		Vars: map[string]interface{}{
-			"public_key":   "../../temp/id_rsa.pub",
-			"ec2_image_id": "ami-083ac7c7ecf9bb9b0",
-			"test_name":    testName,
-			"tags":         tags,
-		},
+		Vars: vars,
 		// Set the environment variables passed to terraform.
 		// AWS_DEFAULT_REGION is the only environment variable strictly required,
 		// when using the AWS provider.
@@ -78,6 +83,10 @@ func TestTerraformSimpleExample(t *testing.T) {
 		defer terraform.Destroy(t, terraformOptions)
 	}
 
+	s := session.Must(session.NewSession())
+
+	s3Client := s3.New(s, aws.NewConfig().WithRegion(region))
+
 	// Init runs "terraform init"
 	terraform.Init(t, terraformOptions)
 
@@ -88,24 +97,23 @@ func TestTerraformSimpleExample(t *testing.T) {
 	// Apply runs "terraform apply"
 	terraform.Apply(t, terraformOptions)
 
-	s := session.Must(session.NewSession())
-
-	s3Client := s3.New(s, aws.NewConfig().WithRegion(region))
-
 	bucketName := terraform.Output(t, terraformOptions, "bucket_name")
 
 	t.Logf("Waiting for cloud init script to finish")
 	for i := 0; true; i++ {
-		_, headObjectError := s3Client.HeadObject(&s3.HeadObjectInput{
+		getObjectOutput, getObjectError := s3Client.GetObject(&s3.GetObjectInput{
 			Bucket: aws.String(bucketName),
 			Key:    aws.String("done.txt"),
 		})
-		if headObjectError == nil {
+		require.NoError(t, getObjectError)
+		body, readAllError := io.ReadAll(getObjectOutput.Body)
+		require.NoError(t, readAllError)
+		if string(body) == "done\n" {
 			break
 		}
 		time.Sleep(1 * time.Second)
-		if i == 30 {
-			require.Fail(t, "Cloud init script had not finished after 30 seconds")
+		if i == 120 {
+			require.Fail(t, "Cloud init script had not finished after 120 seconds")
 		}
 	}
 
@@ -113,7 +121,7 @@ func TestTerraformSimpleExample(t *testing.T) {
 
 	vpcCIDRBlock := terraform.Output(t, terraformOptions, "vpc_cidr_block")
 
-	_, network, parseCIDRError := net.ParseCIDR(vpcCIDRBlock)
+	_, vpcNetwork, parseCIDRError := net.ParseCIDR(vpcCIDRBlock)
 
 	require.NoError(t, parseCIDRError, "invalid CIDR block: %s", vpcCIDRBlock)
 
@@ -125,11 +133,13 @@ func TestTerraformSimpleExample(t *testing.T) {
 
 	t.Logf("Filtering cloudwatch logs")
 
+	// Collect DNS query results
 	filterLogEventsOutput, filterLogEventsError := cloudwatchlogsClient.FilterLogEvents(&cloudwatchlogs.FilterLogEventsInput{
 		LogGroupName: aws.String(cloudwatchLogGroupName),
 	})
 	require.NoError(t, filterLogEventsError)
 
+	// Iterate through DNDS query results
 	for _, event := range filterLogEventsOutput.Events {
 		message := &Message{}
 		err := json.Unmarshal([]byte(aws.StringValue(event.Message)), message)
@@ -137,8 +147,10 @@ func TestTerraformSimpleExample(t *testing.T) {
 		t.Logf("Checking results for %s (%s)", message.Name, message.Query)
 		for _, answer := range message.Answers {
 			a := net.ParseIP(answer)
-			require.NotNil(t, a, "answer is not valid ip address: %s", answer)
-			assert.True(t, network.Contains(a), "network %q does not contain answer %q", network, a)
+			if !assert.NotNil(t, a, "answer is not valid ip address: %s", answer) {
+				continue
+			}
+			assert.True(t, vpcNetwork.Contains(a), "vpc network %q does not contain answer %q", vpcNetwork, a)
 		}
 	}
 }

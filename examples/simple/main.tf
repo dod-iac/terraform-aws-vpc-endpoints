@@ -153,6 +153,20 @@ resource "aws_s3_bucket_object" "test" {
   server_side_encryption = "AES256"
 }
 
+resource "aws_s3_bucket_object" "done" {
+  bucket                 = aws_s3_bucket.test.id
+  acl                    = "bucket-owner-full-control"
+  key                    = "done.txt"
+  content                = null
+  server_side_encryption = "AES256"
+
+  lifecycle {
+    ignore_changes = [
+      content
+    ]
+  }
+}
+
 resource "aws_cloudwatch_log_group" "test" {
   name = var.test_name
   tags = var.tags

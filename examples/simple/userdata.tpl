@@ -38,7 +38,7 @@ sequence_token=""
 for i in $(seq 0 $((interface_endpoints_length-1))); do
   name=$(echo "$${interface_endpoints}" | jq -r --arg i "$${i}" '.[$i|tonumber].name')
   private_dns_name=$(echo "$${interface_endpoints}" | jq -r --arg i "$${i}" '.[$i|tonumber].private_dns_name')
-  log_events=$(dig A "$${private_dns_name}" +nocomments +noquestion +noauthority +noadditional +nostats | awk '{if (NR>3){print}}'| tr -s '\t' | jq -R 'split("\t") | .[-1]' | jq -r --arg d "$${private_dns_name}" --arg n "$${name}" --arg ts "$(echo $(($(date +%s%N)/1000000)))" --slurp '[{timestamp:($ts|tonumber), message:({name: $n, query: $d, answers:.}|@json)}]|@json')
+  log_events=$(dig A "$${private_dns_name}" +nocomments +noquestion +noauthority +noadditional +nostats | awk '{if (NR>3){print}}' | sed -E "s/\t/:/g" | sed -E "s/ /:/g" | tr -s ':' | jq -R 'split(":") | .[-1]' | jq -r --arg d "$${private_dns_name}" --arg n "$${name}" --arg ts "$(echo $(($(date +%s%N)/1000000)))" --slurp '[{timestamp:($ts|tonumber), message:({name: $n, query: $d, answers:.}|@json)}]|@json')
   if [[ -z "$${sequence_token:-}" ]]; then
     sequence_token=$(aws logs put-log-events \
     --log-group-name "${log_group_name}" \
@@ -53,5 +53,5 @@ for i in $(seq 0 $((interface_endpoints_length-1))); do
   fi
 done
 # Mark that user data script finished execution
-echo "Done" | aws s3 cp --acl bucket-owner-full-control --sse AES256 - "s3://${bucket}/done.txt"
-echo "Done" >> /var/log/startup.log 2>&1
+echo "done" | aws s3 cp --acl bucket-owner-full-control --sse AES256 - "s3://${bucket}/done.txt"
+echo "done" >> /var/log/startup.log 2>&1
