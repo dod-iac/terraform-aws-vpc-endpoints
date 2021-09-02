@@ -129,14 +129,24 @@ resource "aws_s3_bucket_object" "test" {
   bucket = aws_s3_bucket.test.id
   acl    = "bucket-owner-full-control"
   key    = "endpoints.json"
-  content = jsonencode([for k, v in module.vpc_endpoints.endpoints : {
-    name             = v.tags.Name
-    id               = v.id
-    arn              = v.arn
-    type             = v.vpc_endpoint_type,
-    service_id       = module.vpc_endpoints.endpoint_services[k].service_id
-    private_dns_name = module.vpc_endpoints.endpoint_services[k].private_dns_name
-  }])
+  content = jsonencode({
+    gateway = [for k, v in module.vpc_endpoints.endpoints : {
+      name             = v.tags.Name
+      id               = v.id
+      arn              = v.arn
+      type             = v.vpc_endpoint_type,
+      service_id       = module.vpc_endpoints.endpoint_services[k].service_id
+      private_dns_name = module.vpc_endpoints.endpoint_services[k].private_dns_name
+    } if v.vpc_endpoint_type == "Gateway" ]
+    interface = [for k, v in module.vpc_endpoints.endpoints : {
+      name             = v.tags.Name
+      id               = v.id
+      arn              = v.arn
+      type             = v.vpc_endpoint_type,
+      service_id       = module.vpc_endpoints.endpoint_services[k].service_id
+      private_dns_name = module.vpc_endpoints.endpoint_services[k].private_dns_name
+    } if v.vpc_endpoint_type == "Interface" ]
+  })
   server_side_encryption = "AES256"
 }
 
@@ -174,6 +184,9 @@ data "aws_iam_policy_document" "ec2_instance_role_policy" {
     actions = [
       "s3:GetObject",
       "s3:GetObjectVersion",
+      "s3:PutObject",
+      "s3:PutObjectAcl",
+      "s3:PutObjectTagging"
     ]
     effect    = "Allow"
     resources = formatlist("%s/*", [
