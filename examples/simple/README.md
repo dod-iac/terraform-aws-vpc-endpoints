@@ -1,4 +1,12 @@
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+## Usage
+
+This example creates a VPC with VPC Endpoints and other resources that are used for testing that internal routes exist.
+
+## License
+
+This example constitutes a work of the United States Government and is not subject to domestic copyright protection under 17 USC § 105.  However, because the project utilizes code licensed from contributors and other third parties, it therefore is licensed under the MIT License.  See LICENSE file for more information.
+
 ## Requirements
 
 No requirements.
@@ -26,7 +34,7 @@ No requirements.
 | [aws_eip.nat](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
 | [aws_iam_instance_profile.ec2_instance_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_policy.ec2_instance_role_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
-| [aws_iam_user_policy_attachment.ec2_instance_role_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.ec2_instance_role_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_instance.test](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_key_pair.test](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [aws_s3_bucket.test](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
@@ -52,7 +60,9 @@ No requirements.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_bucket_name"></a> [bucket\_name](#output\_bucket\_name) | n/a |
 | <a name="output_cloudwatch_log_group_name"></a> [cloudwatch\_log\_group\_name](#output\_cloudwatch\_log\_group\_name) | n/a |
 | <a name="output_endpoint_services"></a> [endpoint\_services](#output\_endpoint\_services) | n/a |
 | <a name="output_endpoints"></a> [endpoints](#output\_endpoints) | n/a |
+| <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | n/a |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

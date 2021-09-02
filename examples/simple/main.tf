@@ -1,9 +1,12 @@
-// =================================================================
-//
-// Work of the U.S. Department of Defense, Defense Digital Service.
-// Released as open source under the MIT License.  See LICENSE file.
-//
-// =================================================================
+/**
+ * ## Usage
+ *
+ * This example creates a VPC with VPC Endpoints and other resources that are used for testing that internal routes exist.
+ *
+ * ## License
+ *
+ * This example constitutes a work of the United States Government and is not subject to domestic copyright protection under 17 USC § 105.  However, because the project utilizes code licensed from contributors and other third parties, it therefore is licensed under the MIT License.  See LICENSE file for more information.
+ */
 
 data "aws_caller_identity" "current" {}
 
@@ -137,7 +140,7 @@ resource "aws_s3_bucket_object" "test" {
       type             = v.vpc_endpoint_type,
       service_id       = module.vpc_endpoints.endpoint_services[k].service_id
       private_dns_name = module.vpc_endpoints.endpoint_services[k].private_dns_name
-    } if v.vpc_endpoint_type == "Gateway" ]
+    } if v.vpc_endpoint_type == "Gateway"]
     interface = [for k, v in module.vpc_endpoints.endpoints : {
       name             = v.tags.Name
       id               = v.id
@@ -145,7 +148,7 @@ resource "aws_s3_bucket_object" "test" {
       type             = v.vpc_endpoint_type,
       service_id       = module.vpc_endpoints.endpoint_services[k].service_id
       private_dns_name = module.vpc_endpoints.endpoint_services[k].private_dns_name
-    } if v.vpc_endpoint_type == "Interface" ]
+    } if v.vpc_endpoint_type == "Interface"]
   })
   server_side_encryption = "AES256"
 }
@@ -188,7 +191,7 @@ data "aws_iam_policy_document" "ec2_instance_role_policy" {
       "s3:PutObjectAcl",
       "s3:PutObjectTagging"
     ]
-    effect    = "Allow"
+    effect = "Allow"
     resources = formatlist("%s/*", [
       aws_s3_bucket.test.arn
     ])
