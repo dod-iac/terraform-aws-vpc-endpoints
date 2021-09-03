@@ -36,6 +36,11 @@ resource "aws_security_group" "endpoint" {
 module "vpc_endpoints" {
   source = "dod-iac/vpc-endpoints/aws"
 
+  route_table_ids    = flatten([
+    module.vpc.intra_route_table_ids,
+    module.vpc.private_route_table_ids,
+    module.vpc.public_route_table_ids
+  ])
   security_group_ids = [aws_security_group.endpoint.id]
   subnet_ids         = module.vpc.private_subnets
   vpc_id             = module.vpc.vpc_id
@@ -92,6 +97,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_policy"></a> [policy](#input\_policy) | If specified, the common policy to apply to all endpoints. | `string` | `""` | no |
+| <a name="input_route_table_ids"></a> [route\_table\_ids](#input\_route\_table\_ids) | One or more route table IDs. Applicable for endpoints of type Gateway. | `list(string)` | `[]` | no |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface. Required for endpoints of type Interface. | `list(string)` | `[]` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for the endpoint. Applicable for endpoints of type GatewayLoadBalancer and Interface. | `list(string)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags applied to the VPC endpoints | `map(string)` | `{}` | no |

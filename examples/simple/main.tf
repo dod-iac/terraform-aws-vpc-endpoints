@@ -90,6 +90,12 @@ resource "aws_security_group" "endpoint" {
 module "vpc_endpoints" {
   source = "../../"
 
+  route_table_ids = flatten([
+    module.vpc.intra_route_table_ids,
+    module.vpc.private_route_table_ids,
+    module.vpc.public_route_table_ids
+  ])
+
   security_group_ids = [aws_security_group.endpoint.id]
 
   subnet_ids = module.vpc.private_subnets

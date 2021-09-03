@@ -4,6 +4,12 @@ variable "policy" {
   default     = ""
 }
 
+variable "route_table_ids" {
+  type        = list(string)
+  description = "One or more route table IDs. Applicable for endpoints of type Gateway."
+  default     = []
+}
+
 variable "security_group_ids" {
   type        = list(string)
   description = "The ID of one or more security groups to associate with the network interface. Required for endpoints of type Interface."
