@@ -1,13 +1,13 @@
 version: '2.1'
 
 orbs:
-  terraform: circleci/terraform@1.2.0
+  terraform: circleci/terraform@3.0.0
 
 executors:
   main:
     working_directory: ~/project/
     docker:
-      - image: cimg/base:2021.03
+      - image: cimg/base:2021.07
 
 jobs:
   test:
@@ -15,7 +15,7 @@ jobs:
     steps:
       - checkout
       - terraform/install:
-          terraform_version: 0.13.7
+          terraform_version: 1.1.1
       - run:
           name: "Download and install terraform-docs"
           command: |
@@ -28,21 +28,21 @@ jobs:
             tar -xf terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz
             mv terraform-docs ~/bin/terraform-docs
           environment:
-            TERRAFORM_DOCS_VERSION: "0.14.1"
+            TERRAFORM_DOCS_VERSION: "0.16.0"
       - run:
           name: "Download and install go"
           command: |
             set -euo pipefail
             cd ~
             mkdir -p ~/bin
-            curl -sSLO https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz
+            curl -sSLO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
             [ $(sha256sum go${GO_VERSION}.linux-amd64.tar.gz | cut -f1 -d' ') = "${GO_CHECKSUM}" ]
             tar -xzvf go${GO_VERSION}.linux-amd64.tar.gz
             sudo mv go /usr/local
             echo 'export PATH=$PATH:/usr/local/go/bin' >> $BASH_ENV
           environment:
-            GO_VERSION: "1.16.5"
-            GO_CHECKSUM: "b12c23023b68de22f74c0524f10b753e7b08b1504cb7e417eccebdd3fae49061"
+            GO_VERSION: "1.17.4"
+            GO_CHECKSUM: "adab2483f644e2f8a10ae93122f0018cef525ca48d0b8764dae87cb5f4fd4206"
       - run: echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
       - run: make update_docs
       - run: make format_terraform
