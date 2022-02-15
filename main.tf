@@ -76,6 +76,7 @@ locals {
     # Athena
 
     athena = {
+      enabled             = var.enable_athena_endpoints
       service             = "athena"
       private_dns_enabled = true
       tags                = { Name = "athena-vpc-endpoint" }
@@ -84,6 +85,7 @@ locals {
     # CloudTrail
 
     cloudtrail = {
+      enabled             = var.enable_cloudtrail_endpoints
       service             = "cloudtrail"
       private_dns_enabled = true
       tags                = { Name = "cloudtrail-vpc-endpoint" }
@@ -92,6 +94,7 @@ locals {
     # CloudWatch
 
     logs = {
+      enabled             = var.enable_cloudwatch_endpoints
       service             = "logs"
       private_dns_enabled = true
       tags                = { Name = "logs-vpc-endpoint" }
@@ -100,6 +103,7 @@ locals {
     # EBS
 
     ebs = {
+      enabled             = var.enable_ec2_endpoints
       service             = "ebs"
       private_dns_enabled = true
       tags                = { Name = "ebs-vpc-endpoint" }
@@ -108,47 +112,58 @@ locals {
     # EC2
 
     ec2 = {
+      enabled             = var.enable_ec2_endpoints
       service             = "ec2"
       private_dns_enabled = true
       tags                = { Name = "ec2-vpc-endpoint" }
     },
     ec2messages = {
+      enabled             = var.enable_ec2_endpoints
       service             = "ec2messages"
       private_dns_enabled = true
       tags                = { Name = "ec2messages-vpc-endpoint" }
     },
 
-    # ECS and ECR
+    # ECR
 
-    ecs = {
-      service             = "ecs"
-      private_dns_enabled = true
-      tags                = { Name = "ecs-vpc-endpoint" }
-    },
-    ecs_agent = {
-      service             = "ecs-agent"
-      private_dns_enabled = true
-      tags                = { Name = "ecs-agent-vpc-endpoint" }
-    },
-    ecs_telemetry = {
-      service             = "ecs-telemetry"
-      private_dns_enabled = true
-      tags                = { Name = "ecs-telemetry-vpc-endpoint" }
-    },
     ecr_api = {
+      enabled             = var.enable_ecr_endpoints
       service             = "ecr.api"
       private_dns_enabled = true
       tags                = { Name = "ecr-api-vpc-endpoint" }
     },
     ecr_dkr = {
+      enabled             = var.enable_ecr_endpoints
       service             = "ecr.dkr"
       private_dns_enabled = true
       tags                = { Name = "ecr-dkr-vpc-endpoint" }
     },
 
+    # ECS
+
+    ecs = {
+      enabled             = var.enable_ecs_endpoints
+      service             = "ecs"
+      private_dns_enabled = true
+      tags                = { Name = "ecs-vpc-endpoint" }
+    },
+    ecs_agent = {
+      enabled             = var.enable_ecs_endpoints
+      service             = "ecs-agent"
+      private_dns_enabled = true
+      tags                = { Name = "ecs-agent-vpc-endpoint" }
+    },
+    ecs_telemetry = {
+      enabled             = var.enable_ecs_endpoints
+      service             = "ecs-telemetry"
+      private_dns_enabled = true
+      tags                = { Name = "ecs-telemetry-vpc-endpoint" }
+    },
+
     # KMS
 
     kms = {
+      enabled             = var.enable_kms_endpoints
       service             = "kms"
       private_dns_enabled = true
       tags                = { Name = "kms-vpc-endpoint" }
@@ -157,6 +172,7 @@ locals {
     # Lambda
 
     lambda = {
+      enabled             = var.enable_lambda_endpoints
       service             = "lambda"
       private_dns_enabled = true
       tags                = { Name = "lambda-vpc-endpoint" }
@@ -165,6 +181,7 @@ locals {
     # S3
 
     s3 = {
+      enabled      = var.enable_s3_endpoints
       service      = "s3"
       service_type = "Gateway"
       tags         = { Name = "s3-vpc-endpoint" }
@@ -173,16 +190,19 @@ locals {
     # SageMaker
 
     sagemaker_api = {
+      enabled             = var.enable_sagemaker_endpoints
       service             = "sagemaker.api"
       private_dns_enabled = true
       tags                = { Name = "sagemaker-api-vpc-endpoint" }
     },
     sagemaker_notebook = {
+      enabled             = var.enable_sagemaker_endpoints
       service_name        = format("aws.sagemaker.%s.notebook", data.aws_region.current.name)
       private_dns_enabled = true
       tags                = { Name = "sagemaker-notebook-vpc-endpoint" }
     },
     sagemaker_runtime = {
+      enabled             = var.enable_sagemaker_endpoints
       service             = "sagemaker.runtime"
       private_dns_enabled = true
       tags                = { Name = "sagemaker-runtime-vpc-endpoint" }
@@ -191,6 +211,7 @@ locals {
     # SNS
 
     sns = {
+      enabled             = var.enable_sns_endpoints
       service             = "sns"
       private_dns_enabled = true
       tags                = { Name = "sns-vpc-endpoint" }
@@ -199,12 +220,14 @@ locals {
     # SSM
 
     ssm = {
+      enabled             = var.enable_ssm_endpoints
       service             = "ssm"
       private_dns_enabled = true
       tags                = { Name = "ssm-vpc-endpoint" }
     },
 
     ssmmessages = {
+      enabled             = var.enable_ssm_endpoints
       service             = "ssmmessages"
       private_dns_enabled = true
       tags                = { Name = "ssmmessages-vpc-endpoint" }
@@ -213,6 +236,7 @@ locals {
     # SQS
 
     sqs = {
+      enabled             = var.enable_sqs_endpoints
       service             = "sqs"
       private_dns_enabled = true
       tags                = { Name = "sqs-vpc-endpoint" }
@@ -221,6 +245,7 @@ locals {
     # STS
 
     sts = {
+      enabled             = var.enable_sts_endpoints
       service             = "sts"
       private_dns_enabled = true
       tags                = { Name = "sts-vpc-endpoint" }
@@ -230,7 +255,10 @@ locals {
 }
 
 data "aws_vpc_endpoint_service" "main" {
-  for_each = local.endpoints
+  for_each = {
+    for k, v in local.endpoints : k => v
+    if coalesce(lookup(v, "enabled", true), true)
+  }
 
   service      = lookup(each.value, "service", null)
   service_name = lookup(each.value, "service_name", null)
@@ -242,7 +270,10 @@ data "aws_vpc_endpoint_service" "main" {
 }
 
 resource "aws_vpc_endpoint" "main" {
-  for_each = local.endpoints
+  for_each = {
+    for k, v in local.endpoints : k => v
+    if coalesce(lookup(v, "enabled", true), true)
+  }
 
   // Accept the VPC endpoint (the VPC endpoint and service need to be in the same AWS account).
   auto_accept = lookup(each.value, "auto_accept", null)

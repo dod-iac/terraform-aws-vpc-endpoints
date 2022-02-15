@@ -96,6 +96,20 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_enable_athena_endpoints"></a> [enable\_athena\_endpoints](#input\_enable\_athena\_endpoints) | Enable VPC endpoints for Athena. | `bool` | `true` | no |
+| <a name="input_enable_cloudtrail_endpoints"></a> [enable\_cloudtrail\_endpoints](#input\_enable\_cloudtrail\_endpoints) | Enable VPC endpoints for CloudTrail. | `bool` | `true` | no |
+| <a name="input_enable_cloudwatch_endpoints"></a> [enable\_cloudwatch\_endpoints](#input\_enable\_cloudwatch\_endpoints) | Enable VPC endpoints for CloudWatch. | `bool` | `true` | no |
+| <a name="input_enable_ec2_endpoints"></a> [enable\_ec2\_endpoints](#input\_enable\_ec2\_endpoints) | Enable VPC endpoints for EC2. | `bool` | `true` | no |
+| <a name="input_enable_ecr_endpoints"></a> [enable\_ecr\_endpoints](#input\_enable\_ecr\_endpoints) | Enable VPC endpoints for ECR. | `bool` | `true` | no |
+| <a name="input_enable_ecs_endpoints"></a> [enable\_ecs\_endpoints](#input\_enable\_ecs\_endpoints) | Enable VPC endpoints for ECS. | `bool` | `true` | no |
+| <a name="input_enable_kms_endpoints"></a> [enable\_kms\_endpoints](#input\_enable\_kms\_endpoints) | Enable VPC endpoints for KMS. | `bool` | `true` | no |
+| <a name="input_enable_lambda_endpoints"></a> [enable\_lambda\_endpoints](#input\_enable\_lambda\_endpoints) | Enable VPC endpoints for Lambda. | `bool` | `true` | no |
+| <a name="input_enable_s3_endpoints"></a> [enable\_s3\_endpoints](#input\_enable\_s3\_endpoints) | Enable VPC endpoints for S3. | `bool` | `true` | no |
+| <a name="input_enable_sagemaker_endpoints"></a> [enable\_sagemaker\_endpoints](#input\_enable\_sagemaker\_endpoints) | Enable VPC endpoints for SageMaker. | `bool` | `true` | no |
+| <a name="input_enable_sns_endpoints"></a> [enable\_sns\_endpoints](#input\_enable\_sns\_endpoints) | Enable VPC endpoints for SNS. | `bool` | `true` | no |
+| <a name="input_enable_sqs_endpoints"></a> [enable\_sqs\_endpoints](#input\_enable\_sqs\_endpoints) | Enable VPC endpoints for SQS. | `bool` | `true` | no |
+| <a name="input_enable_ssm_endpoints"></a> [enable\_ssm\_endpoints](#input\_enable\_ssm\_endpoints) | Enable VPC endpoints for SSM. | `bool` | `true` | no |
+| <a name="input_enable_sts_endpoints"></a> [enable\_sts\_endpoints](#input\_enable\_sts\_endpoints) | Enable VPC endpoints for STS. | `bool` | `true` | no |
 | <a name="input_policy"></a> [policy](#input\_policy) | If specified, the common policy to apply to all endpoints. | `string` | `""` | no |
 | <a name="input_route_table_ids"></a> [route\_table\_ids](#input\_route\_table\_ids) | One or more route table IDs. Applicable for endpoints of type Gateway. | `list(string)` | `[]` | no |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface. Required for endpoints of type Interface. | `list(string)` | `[]` | no |

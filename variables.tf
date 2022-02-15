@@ -1,3 +1,87 @@
+variable "enable_athena_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for Athena."
+  default     = true
+}
+
+variable "enable_cloudtrail_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for CloudTrail."
+  default     = true
+}
+
+variable "enable_cloudwatch_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for CloudWatch."
+  default     = true
+}
+
+variable "enable_ec2_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for EC2."
+  default     = true
+}
+
+variable "enable_ecr_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for ECR."
+  default     = true
+}
+
+variable "enable_ecs_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for ECS."
+  default     = true
+}
+
+variable "enable_kms_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for KMS."
+  default     = true
+}
+
+variable "enable_lambda_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for Lambda."
+  default     = true
+}
+
+variable "enable_s3_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for S3."
+  default     = true
+}
+
+variable "enable_sagemaker_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for SageMaker."
+  default     = true
+}
+
+variable "enable_sns_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for SNS."
+  default     = true
+}
+
+variable "enable_ssm_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for SSM."
+  default     = true
+}
+
+variable "enable_sqs_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for SQS."
+  default     = true
+}
+
+variable "enable_sts_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for STS."
+  default     = true
+}
+
 variable "policy" {
   type        = string
   description = "If specified, the common policy to apply to all endpoints."
