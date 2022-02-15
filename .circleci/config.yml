@@ -15,7 +15,7 @@ jobs:
     steps:
       - checkout
       - terraform/install:
-          terraform_version: 1.1.1
+          terraform_version: 1.1.5
       - run:
           name: "Download and install terraform-docs"
           command: |
@@ -41,8 +41,8 @@ jobs:
             sudo mv go /usr/local
             echo 'export PATH=$PATH:/usr/local/go/bin' >> $BASH_ENV
           environment:
-            GO_VERSION: "1.17.4"
-            GO_CHECKSUM: "adab2483f644e2f8a10ae93122f0018cef525ca48d0b8764dae87cb5f4fd4206"
+            GO_VERSION: "1.17.7"
+            GO_CHECKSUM: "02b111284bedbfa35a7e5b74a06082d18632eff824fd144312f6063943d49259"
       - run: echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
       - run: make update_docs
       - run: make format_terraform
