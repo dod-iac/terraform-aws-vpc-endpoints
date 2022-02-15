@@ -3,9 +3,9 @@ module github.com/dod-iac/terraform-aws-vpc-endpoints
 go 1.17
 
 require (
-	github.com/aws/aws-sdk-go v1.42.50
+	github.com/aws/aws-sdk-go v1.42.53
 	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8
-	github.com/gruntwork-io/terratest v0.40.0
+	github.com/gruntwork-io/terratest v0.40.1
 	github.com/kisielk/errcheck v1.6.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/tools v0.1.9
