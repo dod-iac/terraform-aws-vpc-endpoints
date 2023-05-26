@@ -1,4 +1,4 @@
-module github.com/dod-iac/terraform-aws-redis-cluster
+module github.com/dod-iac/terraform-aws-vpc-endpoints
 
 go 1.20
 
