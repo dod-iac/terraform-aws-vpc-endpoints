@@ -6,7 +6,7 @@
 #   cp .envrc.local.template .envrc.local
 #
 
-export TFENV_TERRAFORM_VERSION=1.1.5
+export TFENV_TERRAFORM_VERSION=1.3.1
 
 # Skip Destroy, useful during testing
 # export TT_SKIP_DESTROY=1

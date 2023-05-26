@@ -3,14 +3,17 @@ bin
 
 # direnv
 .envrc.local
+env.local.bat
+env.local.ps1
 
 # terraform
 .terraform
 .terraform-version
-.terraform.tfstate.lock.info
+*.terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfstate.*.backup
+terraform.tfstate.lock.info
 
 # miscellaneous
 .DS_Store
