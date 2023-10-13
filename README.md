@@ -106,6 +106,7 @@ No modules.
 | <a name="input_enable_lambda_endpoints"></a> [enable\_lambda\_endpoints](#input\_enable\_lambda\_endpoints) | Enable VPC endpoints for Lambda. | `bool` | `true` | no |
 | <a name="input_enable_s3_endpoints"></a> [enable\_s3\_endpoints](#input\_enable\_s3\_endpoints) | Enable VPC endpoints for S3. | `bool` | `true` | no |
 | <a name="input_enable_sagemaker_endpoints"></a> [enable\_sagemaker\_endpoints](#input\_enable\_sagemaker\_endpoints) | Enable VPC endpoints for SageMaker. | `bool` | `true` | no |
+| <a name="input_enable_secretsmanager_endpoints"></a> [enable\_secretsmanager\_endpoints](#input\_enable\_secretsmanager\_endpoints) | Enable VPC endpoints for SecretsManager. | `bool` | `true` | no |
 | <a name="input_enable_sns_endpoints"></a> [enable\_sns\_endpoints](#input\_enable\_sns\_endpoints) | Enable VPC endpoints for SNS. | `bool` | `true` | no |
 | <a name="input_enable_sqs_endpoints"></a> [enable\_sqs\_endpoints](#input\_enable\_sqs\_endpoints) | Enable VPC endpoints for SQS. | `bool` | `true` | no |
 | <a name="input_enable_ssm_endpoints"></a> [enable\_ssm\_endpoints](#input\_enable\_ssm\_endpoints) | Enable VPC endpoints for SSM. | `bool` | `true` | no |
