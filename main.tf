@@ -208,6 +208,14 @@ locals {
       tags                = { Name = "sagemaker-runtime-vpc-endpoint" }
     },
 
+    # SecretsManager
+    ssm = {
+      enabled             = var.enable_secretsmanager_endpoints
+      service             = "secretsmanager"
+      private_dns_enabled = true
+      tags                = { Name = "secretsmanager-vpc-endpoint" }
+    },
+
     # SNS
 
     sns = {

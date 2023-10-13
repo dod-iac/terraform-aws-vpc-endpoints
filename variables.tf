@@ -58,6 +58,12 @@ variable "enable_sagemaker_endpoints" {
   default     = true
 }
 
+variable "enable_secretsmanager_endpoints" {
+  type        = bool
+  description = "Enable VPC endpoints for SecretsManager."
+  default     = true
+}
+
 variable "enable_sns_endpoints" {
   type        = bool
   description = "Enable VPC endpoints for SNS."
